@@ -52,8 +52,9 @@
 
 | 参数 | 类型 | 默认 | 说明 |
 |---|---|---|---|
-| `login_user` | string | `admin` | 控制台管理员用户名 |
-| `login_password` | secret | `$random(len=20)` | 管理员密码，至少 8 位（上游 `min_password_length=8`） |
+| `login_password` | secret | `$random(len=20)` | admin 账号密码，至少 8 位（上游 `min_password_length=8`） |
+
+上游把管理员用户名硬编码为 `admin`（`protoforge/core/auth.py`：`username="admin"`），没有对应的环境变量，所以不生成用户名字段，inject 里写死。
 
 免密登录用 `builtin://simple-inject-password`，`when: /`。ProtoForge 没有独立登录路由——未登录时 `App.vue` 在根路径渲染 `Login.vue`，路由守卫把未登录用户统一重定向到 `/`。表单是 naive-ui 的 `n-input`，没有 `name`/`id`，所以用类型选择器定位：
 

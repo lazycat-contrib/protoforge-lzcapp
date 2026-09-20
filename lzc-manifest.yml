@@ -11,13 +11,15 @@ application:
   injects:
     # 登录页是根路径上的组件（未登录时 App.vue 渲染 Login.vue），
     # 表单使用 naive-ui n-input，没有 name/id，只能按类型定位。
+    # 上游把管理员用户名硬编码为 admin（auth.py: username="admin"），
+    # 只有密码可通过 PROTOFORGE_ADMIN_PASSWORD 配置，所以这里写死用户名。
     - id: login-autofill
       when:
         - /
       do:
         - src: builtin://simple-inject-password
           params:
-            user: "{{ .U.login_user }}"
+            user: "admin"
             password: "{{ .U.login_password }}"
             userSelector: "input.n-input__input-el:not([type='password'])"
             passwordSelector: "input.n-input__input-el[type='password']"
@@ -143,9 +145,13 @@ services:
       start_period: 60s
 
 usage: |
-  打开应用进入 ProtoForge 控制台，安装时设置的密码即管理员 admin 的登录密码（页面会自动填充）。
-  demo 模式已自动创建示例设备并启动全部协议服务，仪表盘上可以直接看到运行中的协议。
-  外部设备连接：把上位机、网关或 PLC 的地址指向本微服的局域网 IP，端口用各协议默认端口
-  （Modbus TCP 5020、OPC-UA 4840、MQTT 1883、Siemens S7 102、BACnet 47808/udp 等，完整清单见应用说明）。
-  仿真数据保存在 /lzcapp/var/data，随应用卸载保留。
-  注意：demo 模式每次启动都会把 admin 密码重置为安装参数中的值，在界面里改过的密码重启后不生效。
+  打开应用即进入 ProtoForge 控制台。管理员账号是 admin，密码为安装时设置的密码，登录页会自动填充。
+  demo 模式已自动创建示例设备与场景，并启动全部协议服务，仪表盘上可直接看到运行中的协议。
+  外部设备连接：把上位机、网关或 PLC 指向本微服的局域网地址，端口用各协议默认端口 ——
+  Modbus TCP 5020、OPC-UA 4840、MQTT 1883、Siemens S7 102、BACnet 47808/udp、
+  HTTP REST 8080、Mitsubishi MC 5000、Omron FINS 9600/udp、Rockwell AB 44818、
+  OPC-DA 51340、FANUC FOCAS 8193、MTConnect 7878、Mettler-Toledo 1701、
+  PROFINET 34964、EtherCAT 34980、GB28181 SIP 5060 (tcp+udp)、GB28181 RTP 6000-6999/udp。
+  协议端口在界面上可以改，但外部可达性由安装包固定，改完需要在应用配置里补上对应端口。
+  仿真数据（SQLite 数据库、录制回放）保存在 /lzcapp/var/data，卸载应用时默认保留。
+  注意：demo 模式每次启动都会把 admin 密码重置为安装参数中的值，界面上改过的密码重启后不生效。
