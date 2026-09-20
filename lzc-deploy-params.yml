@@ -1,0 +1,30 @@
+params:
+  - id: login_user
+    type: string
+    name: "Login User"
+    description: "Administrator username for the ProtoForge console"
+    default_value: "admin"
+    optional: false
+
+  - id: login_password
+    type: secret
+    name: "Login Password"
+    description: "Administrator password, at least 8 characters. Demo mode resets the admin password to this value on every start"
+    default_value: "$random(len=20)"
+    optional: false
+
+locales:
+  zh:
+    login_user:
+      name: "登录用户名"
+      description: "ProtoForge 控制台管理员用户名"
+    login_password:
+      name: "登录密码"
+      description: "管理员密码，至少 8 位；demo 模式每次启动都会把 admin 密码重置为该值"
+  en:
+    login_user:
+      name: "Login User"
+      description: "Administrator username for the ProtoForge console"
+    login_password:
+      name: "Login Password"
+      description: "Administrator password, at least 8 characters. Demo mode resets the admin password to this value on every start"

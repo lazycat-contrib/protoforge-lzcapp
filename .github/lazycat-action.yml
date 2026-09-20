@@ -1,0 +1,42 @@
+version: 1
+
+project:
+  root: .
+  build_config: lzc-build.yml
+  package_file: package.yml
+  output: dist/application.lpk
+  target_arch: amd64
+
+update:
+  strategy: publish
+  allow_downgrade: false
+  version_source:
+    type: image
+    image: protoforge
+
+build:
+  toolchains: []
+  run_buildscript: false
+
+images:
+  - id: protoforge
+    target: service
+    service: protoforge
+    source: docker.io/suoten/protoforge
+    channel: stable
+    sort: semver
+    # 上游只从 git tag v* 产出数字版本标签（1.2.0 / 1.2.4 / 1.2.5 ...），
+    # latest / master / sha-* 不属于发布族，这里只跟踪三位数字版本
+    tag_regex: '^\d+\.\d+\.\d+$'
+    delivery:
+      mode: mirror
+      require_digest_match: true
+
+stores:
+  official:
+    enabled: false
+  private:
+    enabled: true
+    skip_if_version_exists: true
+    name: ProtoForge
+    summary: 工业协议仿真平台 —— 一台微服虚拟出整套工业现场，用 Modbus、OPC-UA、MQTT、S7 等协议联调上位机与网关。

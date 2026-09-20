@@ -1,0 +1,151 @@
+application:
+  subdomain: protoforge
+  # 协议仿真服务常驻，不能被自动休眠
+  background_task: true
+  multi_instance: false
+  public_path:
+    - /
+  upstreams:
+    - location: /
+      backend: http://protoforge:8000/
+  injects:
+    # 登录页是根路径上的组件（未登录时 App.vue 渲染 Login.vue），
+    # 表单使用 naive-ui n-input，没有 name/id，只能按类型定位。
+    - id: login-autofill
+      when:
+        - /
+      do:
+        - src: builtin://simple-inject-password
+          params:
+            user: "{{ .U.login_user }}"
+            password: "{{ .U.login_password }}"
+            userSelector: "input.n-input__input-el:not([type='password'])"
+            passwordSelector: "input.n-input__input-el[type='password']"
+
+  # 协议端口：容器内端口即入站端口。
+  # 全部为 ProtoForge 默认端口，用户可在界面「协议服务」里改端口，
+  # 但 ingress 列表是静态的，改端口后需要自行在此追加。
+  ingress:
+    # --- Modbus TCP ---
+    - protocol: tcp
+      port: 5020
+      service: protoforge
+      description: "Modbus TCP"
+    # --- OPC-UA ---
+    - protocol: tcp
+      port: 4840
+      service: protoforge
+      description: "OPC-UA"
+    # --- MQTT ---
+    - protocol: tcp
+      port: 1883
+      service: protoforge
+      description: "MQTT"
+    # --- GB28181 视频监控（SIP 信令 TCP + UDP）---
+    - protocol: tcp
+      port: 5060
+      service: protoforge
+      description: "GB28181 SIP"
+    - protocol: udp
+      port: 5060
+      service: protoforge
+      description: "GB28181 SIP"
+    # --- GB28181 RTP 媒体流端口范围 ---
+    - protocol: udp
+      publish_port: 6000-6999
+      service: protoforge
+      description: "GB28181 RTP"
+    # --- BACnet ---
+    - protocol: udp
+      port: 47808
+      service: protoforge
+      description: "BACnet"
+    # --- Siemens S7 ---
+    - protocol: tcp
+      port: 102
+      service: protoforge
+      description: "Siemens S7"
+    # --- HTTP REST ---
+    - protocol: tcp
+      port: 8080
+      service: protoforge
+      description: "HTTP REST"
+    # --- Mitsubishi MC ---
+    - protocol: tcp
+      port: 5000
+      service: protoforge
+      description: "Mitsubishi MC"
+    # --- Omron FINS ---
+    - protocol: udp
+      port: 9600
+      service: protoforge
+      description: "Omron FINS"
+    # --- Rockwell AB ---
+    - protocol: tcp
+      port: 44818
+      service: protoforge
+      description: "Rockwell AB"
+    # --- OPC-DA ---
+    - protocol: tcp
+      port: 51340
+      service: protoforge
+      description: "OPC-DA"
+    # --- FANUC FOCAS ---
+    - protocol: tcp
+      port: 8193
+      service: protoforge
+      description: "FANUC FOCAS"
+    # --- MTConnect ---
+    - protocol: tcp
+      port: 7878
+      service: protoforge
+      description: "MTConnect"
+    # --- Mettler-Toledo ---
+    - protocol: tcp
+      port: 1701
+      service: protoforge
+      description: "Mettler-Toledo"
+    # --- PROFINET ---
+    - protocol: tcp
+      port: 34964
+      service: protoforge
+      description: "PROFINET"
+    # --- EtherCAT ---
+    - protocol: tcp
+      port: 34980
+      service: protoforge
+      description: "EtherCAT"
+
+services:
+  protoforge:
+    # upstream: suoten/protoforge:1.2.5 (docker.io)
+    image: docker.1ms.run/suoten/protoforge:1.2.5
+    # 镜像以 UID/GID 1000 运行，用 run_as 让 /lzcapp/var 持久目录按同一身份暴露 owner
+    run_as: "1000:1000"
+    # 镜像默认 CMD 是 run 模式；这里改成 demo：自动建示例设备并启动全部协议服务
+    command: sh /lzcapp/pkg/content/start.sh
+    environment:
+      - PROTOFORGE_DB_PATH=data/protoforge.db
+      - PROTOFORGE_LOG_LEVEL=info
+      - PROTOFORGE_ADMIN_PASSWORD={{ .U.login_password }}
+      - PROTOFORGE_JWT_SECRET={{ stable_secret "protoforge_jwt_secret" }}
+      - PROTOFORGE_DEMO_MODE=1
+    binds:
+      # SQLite 数据库、.jwt_secret、录制回放数据
+      - /lzcapp/var/data:/app/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:8000/health || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+usage: |
+  打开应用进入 ProtoForge 控制台，安装时设置的密码即管理员 admin 的登录密码（页面会自动填充）。
+  demo 模式已自动创建示例设备并启动全部协议服务，仪表盘上可以直接看到运行中的协议。
+  外部设备连接：把上位机、网关或 PLC 的地址指向本微服的局域网 IP，端口用各协议默认端口
+  （Modbus TCP 5020、OPC-UA 4840、MQTT 1883、Siemens S7 102、BACnet 47808/udp 等，完整清单见应用说明）。
+  仿真数据保存在 /lzcapp/var/data，随应用卸载保留。
+  注意：demo 模式每次启动都会把 admin 密码重置为安装参数中的值，在界面里改过的密码重启后不生效。
