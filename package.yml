@@ -1,16 +1,14 @@
 package: community.lazycat.app.protoforge
-version: 1.2.5
+version: 1.4.0
 name: ProtoForge
 description: "Industrial protocol simulation platform: spin up virtual PLCs, meters and cameras on one box, then exercise your SCADA, gateway or IoT platform over Modbus, OPC-UA, MQTT, S7, BACnet and more."
 min_os_version: 1.6.0
 homepage: https://github.com/suoten/ProtoForge
 author: suoten
 license: MIT
-
 permissions:
   required:
     - net.internet
-
 locales:
   zh:
     name: "ProtoForge 工业协议仿真平台"
