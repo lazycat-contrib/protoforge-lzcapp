@@ -118,8 +118,8 @@ application:
       description: "EtherCAT"
 services:
   protoforge:
-    # upstream: docker.io/suoten/protoforge:1.4.0
-    image: docker.1ms.run/suoten/protoforge:1.4.0
+    # upstream: docker.io/suoten/protoforge:1.4.2
+    image: docker.1ms.run/suoten/protoforge:1.4.2
     # 镜像以 UID/GID 1000 运行，用 run_as 让 /lzcapp/var 持久目录按同一身份暴露 owner
     run_as: "1000:1000"
     # 镜像默认 CMD 是 run 模式；这里改成 demo：自动建示例设备并启动全部协议服务
